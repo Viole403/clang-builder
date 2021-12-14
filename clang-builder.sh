@@ -134,13 +134,38 @@ chmod +x github-release
     --name "Clang-${clang_version}-$TagsDate-release" \
     --description "$(cat install/README.md)"
 
+fail="n"
 ./github-release upload \
     --security-token "$GIT_SECRET" \
     --user ZyCromerZ \
     --repo Clang \
     --tag ${clang_version}-${TagsDate}-release \
     --name "$ZipName" \
-    --file "$ZipName"
+    --file "$ZipName" || fail="y"
+
+TotalTry="0"
+UploadAgain()
+{
+    fail="n"
+    ./github-release upload \
+        --security-token "$GIT_SECRET" \
+        --user ZyCromerZ \
+        --repo Clang \
+        --tag ${clang_version}-${TagsDate}-release \
+        --name "$ZipName" \
+        --file "$ZipName" || fail="y"
+    TotalTry=$(($TotalTry+1))
+    if [ "$fail" == "y" ];then
+        if [ "$TotalTry" != "5" ];then
+            sleep 10s
+            UploadAgain
+        fi
+    fi
+}
+if [ "$fail" == "y" ];then
+    sleep 10s
+    UploadAgain
+fi
 
 curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001150624898" \
     -d "disable_web_page_preview=true" \
