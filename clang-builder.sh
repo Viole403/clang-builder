@@ -26,17 +26,6 @@ if [[ -z "${GITLAB_NAME}" ]] || [[ -z "${GITLAB_SECRET}" ]] || [[ -z "${BOT_TOKE
     exit
 fi
 
-wget https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-lastbuild.txt -O result.txt 1>/dev/null 2>/dev/null || echo 'blank' > result.txt
-
-if [[ "$(cat result.txt)" == *"$(date +"%Y-%m-%d")"* ]];then
-    Stop="Y"
-    msg "Today Clang build already compiled"
-    exit
-# elif [[ "$(cat result.txt)" == "blank" ]];then
-#     Stop="N"
-fi
-rm -rf result.txt
-
 TomTal=$(nproc)
 EXTRA_ARGS=()
 if [[ ! -z "${2}" ]];then
