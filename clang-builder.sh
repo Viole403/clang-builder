@@ -21,7 +21,7 @@ else
     exit
 fi
 
-if [[ -z "${GIT_SECRET}" ]] || [[ -z "${BOT_TOKEN}" ]];then
+if [[ -z "${GITLAB_NAME}" ]] || [[ -z "${GITLAB_SECRET}" ]] || [[ -z "${BOT_TOKEN}" ]];then
     msg "something is missing, aborting . . ."
     exit
 fi
@@ -89,95 +89,25 @@ clang_version_f="$(install/bin/clang --version | head -n1)"
 git config --global user.name 'ZyCromerZ'
 git config --global user.email 'neetroid97@gmail.com'
 
-TagsDate="$(date +"%Y%m%d")"
-ZipName="Clang-$clang_version-$TagsDate.tar.gz"
-ClangLink="https://github.com/ZyCromerZ/Clang/releases/download/${clang_version}-${TagsDate}-release/$ZipName"
-
 pushd $(pwd)/install || exit
-echo "# Quick Info" > install/README.md
-echo "* Build Date : $(date +"%Y-%m-%d")" >> install/README.md
-echo "* Clang Version : $clang_version_f" >> install/README.md
-echo "* Binutils Version : $binutils_ver" >> install/README.md
-echo "* Compiled Based : $llvm_commit_url" >> install/README.md
-echo "" >> install/README.md
-echo "# link downloads:" >> install/readme.md
-echo "* <a href=$ClangLink>$ZipName</a>" >> install/readme.md
-tar -czvf ../"$ZipName" *
+echo "# Quick Info" > README.md
+echo "* Build Date : $(date +"%Y-%m-%d")" >> README.md
+echo "* Clang Version : $clang_version_f" >> README.md
+echo "* Binutils Version : $binutils_ver" >> README.md
+echo "* Compiled Based : $llvm_commit_url" >> README.md
+echo "" >> README.md
+# tar -czvf ../"$ZipName" *
 popd || exit
 
-git clone https://${GIT_SECRET}@github.com/ZyCromerZ/Clang -b main $(pwd)/FromGithub
+git clone https://${GITLAB_NAME}:${GITLAB_SECRET}@gitlab.com/ZyCromerZ/clang.git -b $EsOne $(pwd)/FromGithub || git clone https://${GITLAB_NAME}:${GITLAB_SECRET}@gitlab.com/ZyCromerZ/clang.git -b master $(pwd)/FromGithub
 pushd $(pwd)/FromGithub || exit
-echo "$(date +"%Y-%m-%d")" > Clang-$EsOne-lastbuild.txt
-echo "$ClangLink" > Clang-$EsOne-link.txt
-git commit -asm "Upload $clang_version_f"
-git checkout -b ${clang_version}-$TagsDate
-cp ../install/README.md .
+rm -fr ./*
+cp -r ../install/* .
 git add .
-git commit -asm "Upload $clang_version_f"
-git tag ${clang_version}-$TagsDate-release -m "Upload $clang_version_f"
-git push -f origin main ${clang_version}-$TagsDate
-git push -f origin ${clang_version}-$TagsDate-release
+git commit -asm "$(cat README.md)"
 popd || exit
 
-echo "# Quick Info" > install/README.md
-echo "* Build Date : $(date +"%Y-%m-%d")" >> install/README.md
-echo "* Clang Version : $clang_version_f" >> install/README.md
-echo "* Binutils Version : $binutils_ver" >> install/README.md
-echo "* Compiled Based : $llvm_commit_url" >> install/README.md
-
-chmod +x github-release
-./github-release release \
-    --security-token "$GIT_SECRET" \
-    --user ZyCromerZ \
-    --repo Clang \
-    --tag ${clang_version}-${TagsDate}-release \
-    --name "Clang-${clang_version}-$TagsDate-release" \
-    --description "$(cat install/README.md)"
-
-fail="n"
-./github-release upload \
-    --security-token "$GIT_SECRET" \
-    --user ZyCromerZ \
-    --repo Clang \
-    --tag ${clang_version}-${TagsDate}-release \
-    --name "$ZipName" \
-    --file "$ZipName" || fail="y"
-
-TotalTry="0"
-UploadAgain()
-{
-    fail="n"
-    ./github-release upload \
-        --security-token "$GIT_SECRET" \
-        --user ZyCromerZ \
-        --repo Clang \
-        --tag ${clang_version}-${TagsDate}-release \
-        --name "$ZipName" \
-        --file "$ZipName" || fail="y"
-    TotalTry=$(($TotalTry+1))
-    if [ "$fail" == "y" ];then
-        if [ "$TotalTry" != "5" ];then
-            sleep 10s
-            UploadAgain
-        fi
-    fi
-}
-if [ "$fail" == "y" ];then
-    sleep 10s
-    UploadAgain
-fi
-
-if [ "$fail" == "y" ];then
-    pushd $(pwd)/FromGithub || exit
-    git push -d origin ${clang_version}-$TagsDate
-    git push -d origin ${clang_version}-$TagsDate-release
-    git checkout main
-    git reset --hard HEAD~1
-    git push -f origin main
-    popd || exit
-else
-    curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001150624898" \
-        -d "disable_web_page_preview=true" \
-        -d "parse_mode=html" \
-        -d text="New Toolchain Already Builded boy%0ADate : <code>$(date +"%Y-%m-%d")</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
-fi
+curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001150624898" \
+    -d "disable_web_page_preview=true" \
+    -d "parse_mode=html" \
+    -d text="New Toolchain Already Builded boy%0ADate : <code>$(date +"%Y-%m-%d")</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"

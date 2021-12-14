@@ -15,8 +15,10 @@ steps:
     environment: 
       BOT_TOKEN:
         from_secret: BOT_TOKEN
-      GIT_SECRET:
-        from_secret: GIT_SECRET
+      GITLAB_SECRET:
+        from_secret: GITLAB_SECRET
+      GITLAB_NAME:
+        from_secret: GITLAB_NAME
     image: zycromerz/tcdocker:v1
     name: ZyC-Build
     trigger: 
