@@ -109,7 +109,7 @@ git commit -asm "$(cat README.md)"
 git push -f origin $clang_version
 popd || exit
 ClangLink="https://gitlab.com/ZyCromerZ/clang/-/tree/$clang_version"
-curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001150624898" \
+curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001628919239" \
     -d "disable_web_page_preview=true" \
     -d "parse_mode=html" \
     -d text="New Toolchain Already Builded boy%0ADate : <code>$(date +"%Y-%m-%d")</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ARepo : <code>$ClangLink</code>%0A%0A-- uWu --"
