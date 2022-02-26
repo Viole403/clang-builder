@@ -15,6 +15,8 @@ EsOne="${1}"
 if [ "$EsOne" == "13" ];then
     UseBranch="release/13.x"
 elif [ "$EsOne" == "14" ];then
+    UseBranch="release/14.x"
+elif [ "$EsOne" == "main" ];then
     UseBranch="main"
 else
     msg "huh ???"
