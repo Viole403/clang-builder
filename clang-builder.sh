@@ -92,7 +92,7 @@ git config --global user.name 'ZyCromerZ'
 git config --global user.email 'neetroid97@gmail.com'
 
 TagsDate="$(date +"%Y%m%d")"
-ZipName="Clang-$clang_version-$TagsDate.tar.gz"
+ZipName="Clang-$clang_version-${TagsDate}.tar.gz"
 ClangLink="https://github.com/ZyCromerZ/Clang/releases/download/${clang_version}-${TagsDate}-release/$ZipName"
 
 pushd $(pwd)/install || exit
@@ -112,13 +112,13 @@ pushd $(pwd)/FromGithub || exit
 echo "$(date +"%Y-%m-%d")" > Clang-$EsOne-lastbuild.txt
 echo "$ClangLink" > Clang-$EsOne-link.txt
 git commit -asm "Upload $clang_version_f"
-git checkout -b ${clang_version}-$TagsDate
+git checkout -b ${clang_version}-${TagsDate}
 cp ../install/README.md .
 git add .
 git commit -asm "Upload $clang_version_f"
-git tag ${clang_version}-$TagsDate-release -m "Upload $clang_version_f"
-git push -f origin main ${clang_version}-$TagsDate
-git push -f origin ${clang_version}-$TagsDate-release
+git tag ${clang_version}-${TagsDate}-release -m "Upload $clang_version_f"
+git push -f origin main ${clang_version}-${TagsDate}
+git push -f origin ${clang_version}-${TagsDate}-release
 popd || exit
 
 chmod +x github-release
@@ -127,7 +127,7 @@ chmod +x github-release
     --user ZyCromerZ \
     --repo Clang \
     --tag ${clang_version}-${TagsDate}-release \
-    --name "Clang-${clang_version}-$TagsDate-release" \
+    --name "Clang-${clang_version}-${TagsDate}-release" \
     --description "$(cat install/README.md)"
 
 fail="n"
@@ -142,14 +142,15 @@ fail="n"
 TotalTry="0"
 UploadAgain()
 {
-    fail="n"
-    ./github-release upload \
+    GetRelease="$(./github-release upload \
         --security-token "$GIT_SECRET" \
         --user ZyCromerZ \
         --repo Clang \
         --tag ${clang_version}-${TagsDate}-release \
         --name "$ZipName" \
-        --file "$ZipName" || fail="y"
+        --file "$ZipName")"
+    [[ -z "$GetRelease" ]] && fail="n"
+    [[ "$GetRelease" == *"already_exists"* ]] && fail="n"
     TotalTry=$(($TotalTry+1))
     if [ "$fail" == "y" ];then
         if [ "$TotalTry" != "5" ];then
@@ -165,8 +166,8 @@ fi
 
 if [ "$fail" == "y" ];then
     pushd $(pwd)/FromGithub || exit
-    git push -d origin ${clang_version}-$TagsDate
-    git push -d origin ${clang_version}-$TagsDate-release
+    git push -d origin ${clang_version}-${TagsDate}
+    git push -d origin ${clang_version}-${TagsDate}-release
     git checkout main
     git reset --hard HEAD~1
     git push -f origin main
