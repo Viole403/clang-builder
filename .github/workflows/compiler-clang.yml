@@ -11,6 +11,7 @@ env:
   GITLAB_NAME: ${{ secrets.GITLAB_NAME }}
   GITLAB_SECRET: ${{ secrets.GITLAB_SECRET }}
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+  GIT_SECRET: ${{ secrets.GIT_SECRET }}
 
 jobs:
   TigaLebas:
