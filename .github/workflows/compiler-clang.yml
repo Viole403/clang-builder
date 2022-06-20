@@ -27,7 +27,6 @@ jobs:
       run: |
         export DEBIAN_FRONTEND=noninteractive
         export PATH=/usr/bin/core_perl:$PATH
-        cp -af kernel/build-mod.sh kernel/build.sh
         bash ci.sh deps
         bash clang-builder.sh 13 gi
 
@@ -44,6 +43,5 @@ jobs:
       run: |
         export DEBIAN_FRONTEND=noninteractive
         export PATH=/usr/bin/core_perl:$PATH
-        cp -af kernel/build-mod.sh kernel/build.sh
         bash ci.sh deps
         bash clang-builder.sh 14 gi
