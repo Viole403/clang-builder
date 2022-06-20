@@ -142,15 +142,14 @@ fail="n"
 TotalTry="0"
 UploadAgain()
 {
-    GetRelease="$(./github-release upload \
+    fail="n"
+    ./github-release upload \
         --security-token "$GIT_SECRET" \
         --user ZyCromerZ \
         --repo Clang \
         --tag ${clang_version}-${TagsDate}-release \
         --name "$ZipName" \
-        --file "$ZipName")"
-    [[ -z "$GetRelease" ]] && fail="n"
-    [[ "$GetRelease" == *"already_exists"* ]] && fail="n"
+        --file "$ZipName" || fail="y"
     TotalTry=$(($TotalTry+1))
     if [ "$fail" == "y" ];then
         if [ "$TotalTry" != "5" ];then
