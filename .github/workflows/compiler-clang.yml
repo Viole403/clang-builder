@@ -16,7 +16,7 @@ env:
 jobs:
   TigaLebas:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     container: 
       image: zycromerz/tcdocker:v1
@@ -32,7 +32,7 @@ jobs:
 
   EmpatLebas:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     container: 
       image: zycromerz/tcdocker:v1

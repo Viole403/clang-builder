@@ -1312,6 +1312,8 @@ def kernel_build_sh(args, config, dirs, profile_type):
         else:
             targets = targets.split(";")[0]
 
+        targets = targets.split(";")[0]
+
     build_sh += ['-t', targets]
 
     if profile_type == "bolt-sampling":
