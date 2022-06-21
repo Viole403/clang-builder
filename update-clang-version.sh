@@ -3,6 +3,7 @@ register_clang_version() {
     local priority=500
     update-alternatives --remove-all clang
     update-alternatives --remove-all llvm-config
+    update-alternatives --remove-all lld
     update-alternatives \
         --install /usr/bin/llvm-config              llvm-config             /usr/bin/llvm-config-${version} ${priority} \
         --slave /usr/bin/llvm-PerfectShuffle        llvm-PerfectShuffle     /usr/bin/llvm-PerfectShuffle-${version} \
@@ -93,6 +94,12 @@ register_clang_version() {
         --slave   /usr/bin/clang-tidy               clang-tidy              /usr/bin/clang-tidy-${version} \
         --slave   /usr/bin/lldb                     lldb                    /usr/bin/lldb-${version} \
         --slave   /usr/bin/lldb-server              lldb-server             /usr/bin/lldb-server-${version}
+
+    update-alternatives \
+        --install /usr/bin/lld                   lld                        /usr/bin/lld-${version} ${priority} \
+        --slave   /usr/bin/lld-link              lld-link                   /usr/bin/lld-link-${version} \
+        --slave   /usr/bin/ld.lld                ld.lld                     /usr/bin/ld.lld-${version} \
+        --slave   /usr/bin/ld64.lld              ld64.lld                   /usr/bin/ld64.lld-${version} \
 }
-apt-get -y install clang-12
+apt-get -y install clang-12 lld-12
 register_clang_version 12
