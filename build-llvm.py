@@ -1306,12 +1306,10 @@ def kernel_build_sh(args, config, dirs, profile_type):
         #
         # Just do a native build if the host target is in the list of targets
         # or the first target if not.
-        host_target = get_host_llvm_target()
-        if targets == "all" or host_target in targets:
-            targets = host_target
-        else:
-            targets = targets.split(";")[0]
-
+        # host_target = get_host_llvm_target()
+        # if targets == "all" or host_target in targets:
+        #     targets = host_target
+        # else:
         targets = targets.split(";")[0]
 
     build_sh += ['-t', targets]

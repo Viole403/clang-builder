@@ -13,6 +13,7 @@ DIR="$(pwd ...)"
 EsOne="${1}"
 fail="n"
 TagsDate="$(date +"%Y%m%d")"
+TagsDateF="$(date +"%Y%m%d")"
 
 if [ "$EsOne" == "13" ];then
     UseBranch="release/13.x"
@@ -32,7 +33,7 @@ fi
 
 wget https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-lastbuild.txt -O result.txt 1>/dev/null 2>/dev/null || echo 'blank' > result.txt
 
-if [[ "$(cat result.txt)" == *"$(date +"%Y-%m-%d")"* ]];then
+if [[ "$(cat result.txt)" == *"$TagsDateF"* ]];then
     Stop="Y"
     msg "Today Clang build already compiled"
     exit
@@ -56,28 +57,52 @@ fi
     --no-ccache \
     --branch "$UseBranch" \
     --pgo "kernel-defconfig-slim" \
+	--bolt \
+	--projects "clang;lld;polly;bolt" \
     "${EXTRA_ARGS[@]}" || fail="y"
 
-if [[ "$fail" == "n"]];then
+if [[ "$fail" == "n" ]];then
     # Build binutils
+    if [ $(which clang) ] && [ $(which clang++) ]; then
+        export CC="clang"
+        export CXX="clang++"
+        [ $(which llvm-strip) ] && stripBin=llvm-strip
+    else
+        export CC="gcc"
+        export CXX="g++"
+        [ $(which strip) ] && stripBin=strip
+    fi
     ./build-binutils.py --targets aarch64 arm x86_64
 
     # Remove unused products
-    rm -fr install/include
-    rm -f install/lib/*.a install/lib/*.la
-
-    # Strip remaining products
-    for f in $(find install -type f -exec file {} \; | grep 'not stripped' | awk '{print $1}'); do
-        strip -s "${f: : -1}"
-    done
-
-    # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
-    for bin in $(find install -mindepth 2 -maxdepth 3 -type f -exec file {} \; | grep 'ELF .* interpreter' | awk '{print $1}'); do
-        # Remove last character from file output (':')
-        bin="${bin: : -1}"
-
-        echo "$bin"
-        patchelf --set-rpath "$DIR/install/lib" "$bin"
+    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
+    IFS=$'\n'
+    for f in $(find install -type f -exec file {} \;); do
+        if [ -n "$(echo $f | grep 'ELF .* interpreter')" ]; then
+            i=$(echo $f | awk '{print $1}'); i=${i: : -1}
+            # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
+            if [ -d $(dirname $i)/../lib/ldscripts ]; then
+                patchelf --set-rpath '$ORIGIN/../../lib:$ORIGIN/../lib' "$i"
+            else
+                if [ "$(patchelf --print-rpath $i)" != "\$ORIGIN/../../lib:\$ORIGIN/../lib" ]; then
+                    patchelf --set-rpath '$ORIGIN/../lib' "$i"
+                fi
+            fi
+            # Strip remaining products
+            if [ -n "$(echo $f | grep 'not stripped')" ]; then
+                ${stripBin} --strip-unneeded "$i"
+            fi
+        elif [ -n "$(echo $f | grep 'ELF .* relocatable')" ]; then
+            if [ -n "$(echo $f | grep 'not stripped')" ]; then
+                i=$(echo $f | awk '{print $1}');
+                ${stripBin} --strip-unneeded "${i: : -1}"
+            fi
+        else
+            if [ -n "$(echo $f | grep 'not stripped')" ]; then
+                i=$(echo $f | awk '{print $1}');
+                ${stripBin} --strip-all "${i: : -1}"
+            fi
+        fi
     done
 
     # Release Info
@@ -97,9 +122,9 @@ if [[ "$fail" == "n"]];then
     ZipName="Clang-$clang_version-${TagsDate}.tar.gz"
     ClangLink="https://github.com/ZyCromerZ/Clang/releases/download/${clang_version}-${TagsDate}-release/$ZipName"
 
-    pushd $(pwd)/install || exit
+    pushd $DIR/install || exit
     echo "# Quick Info" > README.md
-    echo "* Build Date : $(date +"%Y-%m-%d")" >> README.md
+    echo "* Build Date : $TagsDateF" >> README.md
     echo "* Clang Version : $clang_version_f" >> README.md
     echo "* Binutils Version : $binutils_ver" >> README.md
     echo "* Compiled Based : $llvm_commit_url" >> README.md
@@ -132,7 +157,7 @@ UploadAgain()
 if [[ ! -z "$clang_version" ]];then
     git clone https://${GIT_SECRET}@github.com/ZyCromerZ/Clang -b main $(pwd)/FromGithub
     pushd $(pwd)/FromGithub || exit
-    echo "$(date +"%Y-%m-%d")" > Clang-$EsOne-lastbuild.txt
+    echo "$TagsDateF" > Clang-$EsOne-lastbuild.txt
     echo "$ClangLink" > Clang-$EsOne-link.txt
     git commit -asm "Upload $clang_version_f"
     git checkout -b ${clang_version}-${TagsDate}
@@ -176,6 +201,6 @@ if [[ ! -z "$clang_version" ]];then
         curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001628919239" \
             -d "disable_web_page_preview=true" \
             -d "parse_mode=html" \
-            -d text="New Toolchain Already Builded boy%0ADate : <code>$(date +"%Y-%m-%d")</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
+            -d text="New Toolchain Already Builded boy%0ADate : <code>$TagsDateF</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
     fi
 fi
