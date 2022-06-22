@@ -99,7 +99,7 @@ register_clang_version() {
         --install /usr/bin/lld                   lld                        /usr/bin/lld-${version} ${priority} \
         --slave   /usr/bin/lld-link              lld-link                   /usr/bin/lld-link-${version} \
         --slave   /usr/bin/ld.lld                ld.lld                     /usr/bin/ld.lld-${version} \
-        --slave   /usr/bin/ld64.lld              ld64.lld                   /usr/bin/ld64.lld-${version} \
+        --slave   /usr/bin/ld64.lld              ld64.lld                   /usr/bin/ld64.lld-${version}
 }
 apt-get -y install clang-12 lld-12
 register_clang_version 12
