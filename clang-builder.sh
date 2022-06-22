@@ -29,12 +29,12 @@ EXTRA_PRJ=""
 if [ "$EsOne" == "13" ];then
     UseBranch="release/13.x"
 elif [ "$EsOne" == "14" ];then
-    EXTRA_ARGS+=("--bolt")
-    EXTRA_PRJ=";bolt"
+    # EXTRA_ARGS+=("--bolt")
+    # EXTRA_PRJ=";bolt"
     UseBranch="release/14.x"
 elif [ "$EsOne" == "main" ];then
-    EXTRA_ARGS+=("--bolt")
-    EXTRA_PRJ=";bolt"
+    # EXTRA_ARGS+=("--bolt")
+    # EXTRA_PRJ=";bolt"
     UseBranch="main"
 else
     msg "huh ???"
