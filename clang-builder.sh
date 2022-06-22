@@ -162,7 +162,7 @@ UploadAgain()
         --file "$ZipName" || fail="y"
     TotalTry=$(($TotalTry+1))
     if [ "$fail" == "y" ];then
-        if [ "$TotalTry" != "6" ];then
+        if [ "$TotalTry" != "360" ];then
             sleep 10s
             UploadAgain
         fi
