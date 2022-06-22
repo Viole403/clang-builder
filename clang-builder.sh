@@ -15,6 +15,15 @@ fail="n"
 TagsDate="$(date +"%Y%m%d")"
 TagsDateF="$(date +"%Y%m%d")"
 
+unlimitedEcho(){
+    StATS=1
+    while [ ! -f $DIR/stop-spam-echo.txt ];
+    do
+        msg ">> for prevent no output <<"
+        sleep 10s
+    done
+}
+
 EXTRA_ARGS=()
 EXTRA_PRJ=""
 if [ "$EsOne" == "13" ];then
@@ -53,6 +62,7 @@ if [[ ! -z "${2}" ]];then
     TomTal=$(($TomTal*2))
     # EXTRA_ARGS+=(--install-stage1-only)
 fi 
+unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
 ./build-llvm.py \
     --clang-vendor "ZyC" \
@@ -63,6 +73,8 @@ fi
     --branch "$UseBranch" \
     --projects "clang;lld;polly${EXTRA_PRJ}" \
     "${EXTRA_ARGS[@]}" || fail="y"
+
+echo "idk" > $DIR/stop-spam-echo.txt
 
 if [[ "$fail" == "n" ]];then
     # Build binutils
@@ -78,7 +90,7 @@ if [[ "$fail" == "n" ]];then
     ./build-binutils.py --targets aarch64 arm x86_64
 
     # Remove unused products
-    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
+    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a* $DIR/stop-spam-echo.txt
     IFS=$'\n'
     for f in $(find install -type f -exec file {} \;); do
         if [ -n "$(echo $f | grep 'ELF .* interpreter')" ]; then
