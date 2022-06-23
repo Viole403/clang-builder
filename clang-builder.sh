@@ -64,6 +64,7 @@ if [[ ! -z "${2}" ]];then
 fi 
 unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
+# --projects "clang;lld;polly${EXTRA_PRJ}" \
 ./build-llvm.py \
     --clang-vendor "ZyC" \
     --targets "AArch64;ARM;X86" \
@@ -71,7 +72,6 @@ unlimitedEcho &
     --shallow-clone \
     --no-ccache \
     --branch "$UseBranch" \
-    --projects "clang;lld;polly${EXTRA_PRJ}" \
     "${EXTRA_ARGS[@]}" || fail="y"
 
 echo "idk" > $DIR/stop-spam-echo.txt
