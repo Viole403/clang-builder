@@ -78,44 +78,40 @@ echo "idk" > $DIR/stop-spam-echo.txt
 
 if [[ "$fail" == "n" ]];then
     # Build binutils
-    if [ $(which clang) ] && [ $(which clang++) ]; then
-        export CC="clang"
-        export CXX="clang++"
-        [ $(which llvm-strip) ] && stripBin=llvm-strip
-    else
-        export CC="gcc"
-        export CXX="g++"
-        [ $(which strip) ] && stripBin=strip
-    fi
     ./build-binutils.py --targets aarch64 arm x86_64
-
     # Remove unused products
     rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a* $DIR/stop-spam-echo.txt
+    stripBin=strip
     IFS=$'\n'
-    for f in $(find install -type f -exec file {} \;); do
+    for f in $(find $DIR/install -type f -exec file {} \;); do
+        if [[ $(echo $f | grep 'ARM' | grep 'aarch64' ) ]];then
+            [[ -e $DIR/install/bin/aarch64-linux-gnu-strip ]] && stripBin=$DIR/install/bin/aarch64-linux-gnu-strip
+        elif [[ $(echo $f | grep 'ARM' | grep '32.bit' ) ]];then
+            [[ -e $DIR/install/bin/arm-linux-gnueabi-strip ]] && stripBin=$DIR/install/bin/arm-linux-gnueabi-strip
+        else
+            stripBin=strip
+        fi
         if [ -n "$(echo $f | grep 'ELF .* interpreter')" ]; then
             i=$(echo $f | awk '{print $1}'); i=${i: : -1}
             # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
-            if [ -d $(dirname $i)/../lib/ldscripts ]; then
-                patchelf --set-rpath '$ORIGIN/../../lib:$ORIGIN/../lib' "$i"
-            else
-                if [ "$(patchelf --print-rpath $i)" != "\$ORIGIN/../../lib:\$ORIGIN/../lib" ]; then
-                    patchelf --set-rpath '$ORIGIN/../lib' "$i"
-                fi
-            fi
+            patchelf --set-rpath "$DIR/install/lib" "$i"
+            msg "patchelf --set-rpath '$DIR/install/lib' '$i'"
             # Strip remaining products
             if [ -n "$(echo $f | grep 'not stripped')" ]; then
                 ${stripBin} --strip-unneeded "$i"
+                msg "${stripBin} --strip-unneeded '$i'"
             fi
         elif [ -n "$(echo $f | grep 'ELF .* relocatable')" ]; then
             if [ -n "$(echo $f | grep 'not stripped')" ]; then
                 i=$(echo $f | awk '{print $1}');
                 ${stripBin} --strip-unneeded "${i: : -1}"
+                msg "${stripBin} --strip-unneeded '${i: : -1}'"
             fi
         else
             if [ -n "$(echo $f | grep 'not stripped')" ]; then
                 i=$(echo $f | awk '{print $1}');
                 ${stripBin} --strip-all "${i: : -1}"
+                msg "${stripBin} --strip-all '${i: : -1}'"
             fi
         fi
     done
