@@ -15,31 +15,50 @@ fail="n"
 TagsDate="$(date +"%Y%m%d")"
 TagsDateF="$(date +"%Y%m%d")"
 
-unlimitedEcho(){
-    StATS=1
-    while [ ! -f $DIR/stop-spam-echo.txt ];
-    do
-        msg ">> for prevent no output <<"
-        sleep 10s
-    done
-}
+# unlimitedEcho(){
+#     StATS=1
+#     while [ ! -f $DIR/stop-spam-echo.txt ];
+#     do
+#         msg ">> for prevent no output <<"
+#         sleep 10s
+#     done
+# }
 
 EXTRA_ARGS=()
 EXTRA_PRJ=""
-if [ "$EsOne" == "13" ];then
-    UseBranch="release/13.x"
-elif [ "$EsOne" == "14" ];then
-    # EXTRA_ARGS+=("--bolt")
-    # EXTRA_PRJ=";bolt"
-    UseBranch="release/14.x"
-elif [ "$EsOne" == "main" ];then
-    # EXTRA_ARGS+=("--bolt")
-    # EXTRA_PRJ=";bolt"
-    UseBranch="main"
-else
-    msg "huh ???"
+UseBranch=""
+
+for ListBranch in 10 11 12 13 14 main
+do
+    if [[ "$ListBranch" == "$EsOne" ]];then
+        if [[ "$ListBranch" == "main" ]];then
+            UseBranch="main"
+        else
+            UseBranch="release/$UseBranch.x"
+        fi
+    fi
+done
+
+
+if [[ -z "$UseBranch" ]];then
+    msg "branch not found"
     exit
 fi
+
+# if [ "$EsOne" == "13" ];then
+#     UseBranch="release/13.x"
+# elif [ "$EsOne" == "14" ];then
+#     # EXTRA_ARGS+=("--bolt")
+#     # EXTRA_PRJ=";bolt"
+#     UseBranch="release/14.x"
+# elif [ "$EsOne" == "main" ];then
+#     # EXTRA_ARGS+=("--bolt")
+#     # EXTRA_PRJ=";bolt"
+#     UseBranch="main"
+# else
+#     msg "huh ???"
+#     exit
+# fi
 
 if [[ -z "${GIT_SECRET}" ]] || [[ -z "${BOT_TOKEN}" ]];then
     msg "something is missing, aborting . . ."
@@ -47,22 +66,36 @@ if [[ -z "${GIT_SECRET}" ]] || [[ -z "${BOT_TOKEN}" ]];then
 fi
 
 wget https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-lastbuild.txt -O result.txt 1>/dev/null 2>/dev/null || echo 'blank' > result.txt
+wget https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-commit.txt -O result-b.txt 1>/dev/null 2>/dev/null || echo 'blank' > result-b.txt
 
 if [[ "$(cat result.txt)" == *"$TagsDateF"* ]];then
-    Stop="Y"
-    msg "Today Clang build already compiled"
+    # Stop="Y"
+    msg "Today Clang $EsOne build already compiled"
     exit
 # elif [[ "$(cat result.txt)" == "blank" ]];then
 #     Stop="N"
 fi
-rm -rf result.txt
+
+if [[ "$(curl -X GET -H "Cache-Control: no-cache" https://api.github.com/repos/llvm/llvm-project/commits/release/$UseBranch | grep commit)" == *"commits/$(cat result-b.txt)"* ]];then
+    Stop="Y"
+    msg "Latest clang $EsOne already compiled"
+    exit
+fi
+
+rm -rf result.txt result-b.txt
+
+if [[ "$UseBranch" != "main" ]] && [[ "$(date +"%u")" != "1" ]];then
+    # Stop="Y"
+    msg "for $UseBranch, only can be compiled on monday"
+    exit
+fi
 
 TomTal=$(nproc)
 if [[ ! -z "${2}" ]];then
     TomTal=$(($TomTal*2))
     # EXTRA_ARGS+=(--install-stage1-only)
 fi 
-unlimitedEcho &
+# unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
 # --projects "clang;lld;polly${EXTRA_PRJ}" \
 ./build-llvm.py \
@@ -74,23 +107,15 @@ unlimitedEcho &
     --branch "$UseBranch" \
     "${EXTRA_ARGS[@]}" || fail="y"
 
-echo "idk" > $DIR/stop-spam-echo.txt
+# echo "idk" > $DIR/stop-spam-echo.txt
 
 if [[ "$fail" == "n" ]];then
     # Build binutils
     ./build-binutils.py --targets aarch64 arm x86_64
     # Remove unused products
-    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a* $DIR/stop-spam-echo.txt
-    stripBin=strip
+    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
     IFS=$'\n'
     for f in $(find $DIR/install -type f -exec file {} \;); do
-        if [[ $(echo $f | grep 'ARM' | grep 'aarch64' ) ]];then
-            [[ -e $DIR/install/bin/aarch64-linux-gnu-strip ]] && stripBin=$DIR/install/bin/aarch64-linux-gnu-strip
-        elif [[ $(echo $f | grep 'ARM' | grep '32.bit' ) ]];then
-            [[ -e $DIR/install/bin/arm-linux-gnueabi-strip ]] && stripBin=$DIR/install/bin/arm-linux-gnueabi-strip
-        else
-            stripBin=strip
-        fi
         if [ -n "$(echo $f | grep 'ELF .* interpreter')" ]; then
             i=$(echo $f | awk '{print $1}'); i=${i: : -1}
             # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
@@ -98,20 +123,20 @@ if [[ "$fail" == "n" ]];then
             msg "patchelf --set-rpath '$DIR/install/lib' '$i'"
             # Strip remaining products
             if [ -n "$(echo $f | grep 'not stripped')" ]; then
-                ${stripBin} --strip-unneeded "$i"
-                msg "${stripBin} --strip-unneeded '$i'"
+                strip --strip-unneeded "$i"
+                msg "strip --strip-unneeded '$i'"
             fi
         elif [ -n "$(echo $f | grep 'ELF .* relocatable')" ]; then
             if [ -n "$(echo $f | grep 'not stripped')" ]; then
                 i=$(echo $f | awk '{print $1}');
-                ${stripBin} --strip-unneeded "${i: : -1}"
-                msg "${stripBin} --strip-unneeded '${i: : -1}'"
+                strip --strip-unneeded "${i: : -1}"
+                msg "strip --strip-unneeded '${i: : -1}'"
             fi
         else
             if [ -n "$(echo $f | grep 'not stripped')" ]; then
                 i=$(echo $f | awk '{print $1}');
-                ${stripBin} --strip-all "${i: : -1}"
-                msg "${stripBin} --strip-all '${i: : -1}'"
+                strip --strip-all "${i: : -1}"
+                msg "strip --strip-all '${i: : -1}'"
             fi
         fi
     done
@@ -170,6 +195,7 @@ if [[ ! -z "$clang_version" ]];then
     pushd $(pwd)/FromGithub || exit
     echo "$TagsDateF" > Clang-$EsOne-lastbuild.txt
     echo "$ClangLink" > Clang-$EsOne-link.txt
+    echo "$llvm_commit" > Clang-$EsOne-commit.txt
     git commit -asm "Upload $clang_version_f"
     git checkout -b ${clang_version}-${TagsDate}
     cp ../install/README.md .
@@ -214,4 +240,6 @@ if [[ ! -z "$clang_version" ]];then
             -d "parse_mode=html" \
             -d text="New Toolchain Already Builded boy%0ADate : <code>$TagsDateF</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
     fi
+else
+    msg "clang version not found, maybe broken :/"
 fi

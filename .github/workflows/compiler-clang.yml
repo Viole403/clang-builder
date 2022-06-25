@@ -22,9 +22,14 @@ jobs:
       image: zycromerz/tcdocker:v1
 
     steps:
-    - uses: actions/checkout@v2
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        path: clang-13
+
     - name: Build TC
       run: |
+        cd clang-13
         export DEBIAN_FRONTEND=noninteractive
         export PATH=/usr/bin/core_perl:$PATH
         bash ci.sh deps
@@ -39,9 +44,14 @@ jobs:
       image: zycromerz/tcdocker:v1
 
     steps:
-    - uses: actions/checkout@v2
+    - name: checkout
+      uses: actions/checkout@v2
+      with:
+        path: clang-14
+
     - name: Build TC
       run: |
+        cd clang-14
         export DEBIAN_FRONTEND=noninteractive
         export PATH=/usr/bin/core_perl:$PATH
         bash ci.sh deps
