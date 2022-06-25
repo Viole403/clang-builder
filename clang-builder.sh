@@ -110,35 +110,55 @@ fi
 # echo "idk" > $DIR/stop-spam-echo.txt
 
 if [[ "$fail" == "n" ]];then
+    $DIR/install/bin/clang --version
+
     # Build binutils
     ./build-binutils.py --targets aarch64 arm x86_64
     # Remove unused products
-    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
-    IFS=$'\n'
-    for f in $(find $DIR/install -type f -exec file {} \;); do
-        if [ -n "$(echo $f | grep 'ELF .* interpreter')" ]; then
-            i=$(echo $f | awk '{print $1}'); i=${i: : -1}
-            # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
-            patchelf --set-rpath "$DIR/install/lib" "$i"
-            msg "patchelf --set-rpath '$DIR/install/lib' '$i'"
-            # Strip remaining products
-            if [ -n "$(echo $f | grep 'not stripped')" ]; then
-                strip --strip-unneeded "$i"
-                msg "strip --strip-unneeded '$i'"
-            fi
-        elif [ -n "$(echo $f | grep 'ELF .* relocatable')" ]; then
-            if [ -n "$(echo $f | grep 'not stripped')" ]; then
-                i=$(echo $f | awk '{print $1}');
-                strip --strip-unneeded "${i: : -1}"
-                msg "strip --strip-unneeded '${i: : -1}'"
-            fi
-        else
-            if [ -n "$(echo $f | grep 'not stripped')" ]; then
-                i=$(echo $f | awk '{print $1}');
-                strip --strip-all "${i: : -1}"
-                msg "strip --strip-all '${i: : -1}'"
-            fi
-        fi
+    # rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
+    # IFS=$'\n'
+    # for f in $(find $DIR/install -type f -exec file {} \;); do
+    #     if [ -n "$(echo $f | grep 'ELF .* interpreter')" ]; then
+    #         i=$(echo $f | awk '{print $1}'); i=${i: : -1}
+    #         # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
+    #         patchelf --set-rpath "$DIR/install/lib" "$i"
+    #         msg "patchelf --set-rpath '$DIR/install/lib' '$i'"
+    #         # Strip remaining products
+    #         if [ -n "$(echo $f | grep 'not stripped')" ]; then
+    #             strip --strip-unneeded "$i"
+    #             msg "strip --strip-unneeded '$i'"
+    #         fi
+    #     elif [ -n "$(echo $f | grep 'ELF .* relocatable')" ]; then
+    #         if [ -n "$(echo $f | grep 'not stripped')" ]; then
+    #             i=$(echo $f | awk '{print $1}');
+    #             strip --strip-unneeded "${i: : -1}"
+    #             msg "strip --strip-unneeded '${i: : -1}'"
+    #         fi
+    #     else
+    #         if [ -n "$(echo $f | grep 'not stripped')" ]; then
+    #             i=$(echo $f | awk '{print $1}');
+    #             strip --strip-all "${i: : -1}"
+    #             msg "strip --strip-all '${i: : -1}'"
+    #         fi
+    #     fi
+    # done
+
+    # Remove unused products
+    rm -fr $DIR/install/include
+    rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la
+
+    # Strip remaining products
+    for f in $(find $DIR/install -type f -exec file {} \; | grep 'not stripped' | awk '{print $1}'); do
+        strip -s "${f: : -1}"
+    done
+
+    # Set executable rpaths so setting LD_LIBRARY_PATH isn't necessary
+    for bin in $(find $DIR/install -mindepth 2 -maxdepth 3 -type f -exec file {} \; | grep 'ELF .* interpreter' | awk '{print $1}'); do
+        # Remove last character from file output (':')
+        bin="${bin: : -1}"
+
+        echo "$bin"
+        patchelf --set-rpath "$DIR/install/lib" "$bin"
     done
 
     # Release Info
