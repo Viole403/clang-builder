@@ -34,7 +34,7 @@ do
         if [[ "$ListBranch" == "main" ]];then
             UseBranch="main"
         else
-            UseBranch="release/$UseBranch.x"
+            UseBranch="release/$EsOne.x"
         fi
     fi
 done
