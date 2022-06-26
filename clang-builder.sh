@@ -216,11 +216,10 @@ if [[ ! -z "$clang_version" ]];then
     echo "$TagsDateF" > Clang-$EsOne-lastbuild.txt
     echo "$ClangLink" > Clang-$EsOne-link.txt
     echo "$llvm_commit" > Clang-$EsOne-commit.txt
-    git commit -asm "Upload $clang_version_f"
+    git add . && git commit -asm "Upload $clang_version_f"
     git checkout -b ${clang_version}-${TagsDate}
     cp ../install/README.md .
-    git add .
-    git commit -asm "Upload $clang_version_f"
+    git add . && git commit -asm "Update Readme.md"
     git tag ${clang_version}-${TagsDate}-release -m "Upload $clang_version_f"
     git push -f origin main ${clang_version}-${TagsDate}
     git push -f origin ${clang_version}-${TagsDate}-release
