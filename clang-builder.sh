@@ -76,7 +76,7 @@ if [[ "$(cat result.txt)" == *"$TagsDateF"* ]];then
 #     Stop="N"
 fi
 
-if [[ "$(curl -X GET -H "Cache-Control: no-cache" https://api.github.com/repos/llvm/llvm-project/commits/release/$UseBranch | grep commit)" == *"commits/$(cat result-b.txt)"* ]];then
+if [[ "$(curl -X GET -H "Cache-Control: no-cache" https://api.github.com/repos/llvm/llvm-project/commits/$UseBranch | grep commit)" == *"commits/$(cat result-b.txt)"* ]];then
     Stop="Y"
     msg "Latest clang $EsOne already compiled"
     exit
