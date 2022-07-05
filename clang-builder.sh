@@ -223,6 +223,16 @@ if [[ ! -z "$clang_version" ]];then
     git tag ${clang_version}-${TagsDate}-release -m "Upload $clang_version_f"
     git push -f origin main ${clang_version}-${TagsDate}
     git push -f origin ${clang_version}-${TagsDate}-release
+    if [[ "$UseBranch" == "main" ]];then
+        git checkout --orphan for-strip
+        rm -fr * 
+        cp -af $DIR/install/bin/aarch64-linux-gnu-strip .
+        cp -af $DIR/install/bin/arm-linux-gnueabi-strip .
+        cp -af $DIR/install/bin/strip .
+        echo "# Just For Personal Use Only" > README.md
+        git add . && git commit -asm "add strip from ${clang_version_f}"
+        git push -f origin for-strip
+    fi
     popd || exit
 
     chmod +x github-release
