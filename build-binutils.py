@@ -157,12 +157,11 @@ def invoke_configure(build_folder, install_folder, root_folder, target,
     ]
     if host_arch:
         configure += [
-            'CFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections -flto -flto-compression-level=9 -march=%s -mtune=%s' % (host_arch, host_arch),
-            'CXXFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections -flto -flto-compression-level=9 -march=%s -mtune=%s' % (host_arch, host_arch),
-            'LDFLAGS=-O3'
+            'CFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections -march=%s -mtune=%s' % (host_arch, host_arch),
+            'CXXFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections -march=%s -mtune=%s' % (host_arch, host_arch)
         ]
     else:
-        configure += ['CFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections -flto -flto-compression-level=9', 'CXXFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections -flto -flto-compression-level=9', 'LDFLAGS=-O3']
+        configure += ['CFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections', 'CXXFLAGS=-g0 -O3 -pipe -fstack-protector-strong -fuse-linker-plugin -ffunction-sections -fdata-sections', 'LDFLAGS=-O3']
 
     configure_arch_flags = {
         "arm-linux-gnueabi": [
