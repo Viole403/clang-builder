@@ -33,7 +33,7 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         export PATH=/usr/bin/core_perl:$PATH
         bash ci.sh deps
-        bash update-clang-version.sh
+        bash update-clang-version.sh 13
         bash clang-builder.sh 13 gi
 
   EmpatLebas:
@@ -55,5 +55,5 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         export PATH=/usr/bin/core_perl:$PATH
         bash ci.sh deps
-        bash update-clang-version.sh
+        bash update-clang-version.sh 14
         bash clang-builder.sh 14 gi
