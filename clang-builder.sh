@@ -105,6 +105,7 @@ fi
     --shallow-clone \
     --no-ccache \
     --branch "$UseBranch" \
+    --pgo "kernel-defconfig-slim" \
     "${EXTRA_ARGS[@]}" || fail="y"
 
 # echo "idk" > $DIR/stop-spam-echo.txt
