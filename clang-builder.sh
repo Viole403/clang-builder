@@ -105,9 +105,10 @@ fi
 
 TomTal=$(nproc)
 if [[ ! -z "${2}" ]];then
-    TomTal=$(($TomTal*2))
+    TomTal=$(($TomTal*4))
     # EXTRA_ARGS+=(--install-stage1-only)
 fi 
+TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
 # --projects "clang;lld;polly${EXTRA_PRJ}" \
@@ -116,7 +117,6 @@ fi
     --targets "AArch64;ARM;X86" \
     --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3'" \
     --shallow-clone \
-    --no-ccache \
     --branch "$UseBranch" \
     --pgo "kernel-defconfig-slim" \
     "${EXTRA_ARGS[@]}" || fail="y"
