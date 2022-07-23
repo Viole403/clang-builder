@@ -72,11 +72,13 @@ wget -q https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-comm
 if [[ "$(cat result-c.txt)" != 'blank' ]];then
     GetDt="$(cat result-c.txt)"
     wget -q https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.sha512 -O sha512
-    urls=$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.tar.xz" | sed -r 's/\//\\\//g' )
-    sed -i "s/ = "'"'"---for-links---/ = "'"'"${urls}/" utils.py
-    sed -i "s/binutils-2.38/binutils-master/" utils.py
-    sed -i "s/8bf0b0d193c9c010e0518ee2b2e5a830898af206510992483b427477ed178396cd210235e85fd7bd99a96fc6d5eedbeccbd48317a10f752b7336ada8b2bb826d/$(cat sha512)/" utils.py
-    rm -rf sha512
+    if [[ -e sha512 ]];then
+        urls=$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.tar.xz" | sed -r 's/\//\\\//g' )
+        sed -i "s/ = "'"'"---for-links---/ = "'"'"${urls}/" utils.py
+        sed -i "s/binutils-2.38/binutils-master/" utils.py
+        sed -i "s/8bf0b0d193c9c010e0518ee2b2e5a830898af206510992483b427477ed178396cd210235e85fd7bd99a96fc6d5eedbeccbd48317a10f752b7336ada8b2bb826d/$(cat sha512)/" utils.py
+        rm -rf sha512
+    fi
 fi
 
 if [[ "$(cat result.txt)" == *"$TagsDateF"* ]];then
