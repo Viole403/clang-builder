@@ -67,16 +67,17 @@ fi
 
 wget -q https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-lastbuild.txt -O result.txt || echo 'blank' > result.txt
 wget -q https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-commit.txt -O result-b.txt || echo 'blank' > result-b.txt
-wget -q https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$EsOne-commit.txt -O result-c.txt || echo 'blank' > result-c.txt
+wget -q https://raw.githubusercontent.com/ZyCromerZ/binutils-maker/main/result/binutils-master.date -O result-c.txt || echo 'blank' > result-c.txt
 
 if [[ "$(cat result-c.txt)" != 'blank' ]];then
     GetDt="$(cat result-c.txt)"
-    wget -q https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.sha512 -O sha512
-    if [[ -e sha512 ]];then
-        urls=$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.tar.xz" | sed -r 's/\//\\\//g' )
-        sed -i "s/ = "'"'"---for-links---/ = "'"'"${urls}/" utils.py
-        sed -i "s/binutils-2.38/binutils-master/" utils.py
-        sed -i "s/8bf0b0d193c9c010e0518ee2b2e5a830898af206510992483b427477ed178396cd210235e85fd7bd99a96fc6d5eedbeccbd48317a10f752b7336ada8b2bb826d/$(cat sha512)/" utils.py
+    wget -q https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.sha512 -O sha512 || echo 'blank' > sha512
+    if [[ "$(cat sha512)" != 'blank' ]];then
+        urls="$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.tar.xz" | sed -r 's/\//\\\//g' )"
+        sha512x="$(cat sha512)"
+        sed -i "s/ = "'"'"---for-links---/ = "'"'"${urls}/" utils.py && msg "update url to ${urls}"
+        sed -i "s/binutils-2.38/binutils-master/" utils.py && msg "update binutils-2.38 to binutils-master"
+        sed -i "s/8bf0b0d193c9c010e0518ee2b2e5a830898af206510992483b427477ed178396cd210235e85fd7bd99a96fc6d5eedbeccbd48317a10f752b7336ada8b2bb826d/${sha512x}/" utils.py && msg "update sha to ${sha512x}"
         rm -rf sha512
     fi
 fi
