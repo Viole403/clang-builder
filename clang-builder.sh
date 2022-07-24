@@ -14,6 +14,7 @@ EsOne="${1}"
 fail="n"
 TagsDate="$(date +"%Y%m%d")"
 TagsDateF="$(date +"%Y%m%d")"
+ccache -M 10G
 
 # unlimitedEcho(){
 #     StATS=1
