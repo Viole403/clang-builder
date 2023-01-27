@@ -14,15 +14,20 @@ function register_clang_version() {
     [[ -d /usr/lib/llvm-$version/bin ]] && export PATH="/usr/lib/llvm-$version/bin:${PATH}"
     [[ -d /usr/lib/llvm-$version/lib ]] && export LD_LIBRARY_PATH="/usr/lib/llvm-$version/lib:${LD_LIBRARY_PATH}"
 }
-apt-get -y install clang-11 lld-11 linux-tools-common linux-tools-azure xxhash patchelf elfutils wget ccache
+apt-get -y install clang-12 lld-12 linux-tools-common linux-tools-azure xxhash patchelf elfutils wget ccache
 # register_clang_version 11
 TotalFail="0"
 function getclang()
 {
     Fail="N"
+    ForceStop="N"
     Ver="${@}"
     msg "try clone clang $Ver"
-    wget -q $(curl https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$Ver-link.txt 2>/dev/null) -O "ZyC-Clang.tar.gz" || Fail="Y"
+    if [[ "$(curl https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$Ver-link.txt)" == *"404"* ]];then
+        Fail="Y"
+        ForceStop="Y"
+    fi
+    [[ "${Fail}" == "N" ]] && wget -q $(curl https://raw.githubusercontent.com/ZyCromerZ/Clang/main/Clang-$Ver-link.txt 2>/dev/null) -O "ZyC-Clang.tar.gz" || Fail="Y"
     if [[ "${Fail}" == "N" ]];then
         mkdir $(pwd)/extracted-clang
         tar -xf ZyC-Clang.tar.gz -C "$(pwd)/extracted-clang"
@@ -38,13 +43,15 @@ function getclang()
         [[ -d $(pwd)/extracted-clang/lib ]] && export LD_LIBRARY_PATH="$(pwd)/extracted-clang/lib:${LD_LIBRARY_PATH}"
 
     else
-        TotalFail=$(($TotalFail+1))
-        msg "clone clang $Ver fail"
-        sleep 1s
-        if [[ "${TotalFail}" -le "10" ]];then
-            getclang $Ver
-        else
-            register_clang_version 11
+        if [ "$ForceStop" == "N" ];then
+            TotalFail=$(($TotalFail+1))
+            msg "clone clang $Ver fail"
+            sleep 1s
+            if [[ "${TotalFail}" -le "10" ]];then
+                getclang $Ver
+            else
+                register_clang_version 12
+            fi
         fi
     fi
 }
