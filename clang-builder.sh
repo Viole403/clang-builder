@@ -102,11 +102,11 @@ fi
 
 rm -rf result.txt result-b.txt result-c.txt
 
-if [[ "$UseBranch" != "main" ]] && [[ "$(date +"%u")" != "1" ]];then
-    # Stop="Y"
-    msg "for $UseBranch, only can be compiled on monday"
-    exit
-fi
+# if [[ "$UseBranch" != "main" ]] && [[ "$(date +"%u")" != "1" ]];then
+#     # Stop="Y"
+#     msg "for $UseBranch, only can be compiled on monday"
+#     exit
+# fi
 
 TomTal=$(nproc)
 if [[ ! -z "${2}" ]];then
