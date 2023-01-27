@@ -16,10 +16,10 @@ env:
 jobs:
   TigaLebas:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     container: 
-      image: zycromerz/tcdocker:v1
+      image: zycromerz/tcdocker:v2
 
     steps:
     - name: checkout
@@ -38,10 +38,10 @@ jobs:
 
   EmpatLebas:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     container: 
-      image: zycromerz/tcdocker:v1
+      image: zycromerz/tcdocker:v2
 
     steps:
     - name: checkout
