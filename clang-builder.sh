@@ -117,7 +117,7 @@ TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
 # --projects "clang;lld;polly${EXTRA_PRJ}" \
-./build-llvm.py \
+python3 build-llvm.py \
     --clang-vendor "ZyC" \
     --targets "AArch64;ARM;X86" \
     --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3'" \
@@ -132,7 +132,7 @@ if [[ "$fail" == "n" ]];then
     $DIR/install/bin/clang --version
 
     # Build binutils
-    ./build-binutils.py --targets aarch64 arm x86_64
+    python3 build-binutils.py --targets aarch64 arm x86_64
     # Remove unused products
     # rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
     # IFS=$'\n'
