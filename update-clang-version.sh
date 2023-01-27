@@ -14,7 +14,7 @@ function register_clang_version() {
     [[ -d /usr/lib/llvm-$version/bin ]] && export PATH="/usr/lib/llvm-$version/bin:${PATH}"
     [[ -d /usr/lib/llvm-$version/lib ]] && export LD_LIBRARY_PATH="/usr/lib/llvm-$version/lib:${LD_LIBRARY_PATH}"
 }
-apt-get -y install clang-12 lld-12 linux-tools-common linux-tools-azure xxhash patchelf elfutils wget ccache
+apt-get -y install clang-14 lld-14 linux-tools-common linux-tools-azure xxhash patchelf elfutils wget ccache
 # register_clang_version 11
 TotalFail="0"
 function getclang()
@@ -50,8 +50,10 @@ function getclang()
             if [[ "${TotalFail}" -le "10" ]];then
                 getclang $Ver
             else
-                register_clang_version 12
+                register_clang_version 14
             fi
+        else
+            register_clang_version 14
         fi
     fi
 }
