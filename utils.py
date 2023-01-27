@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # Description: Common helper functions
 
-import hashlib
-import pathlib
-import shutil
+import re
 import subprocess
+import sys
+import time
 
 
 def create_gitignore(folder):
@@ -13,68 +13,55 @@ def create_gitignore(folder):
     known until the script is run so they can't be added to the root .gitignore
     :param folder: Folder to create the gitignore in
     """
-    with folder.joinpath(".gitignore").open("w") as gitignore:
-        gitignore.write("*")
+    folder.joinpath('gitignore').write_text('*\n', encoding='utf-8')
 
 
-def current_binutils():
+def flush_std_err_out():
+    sys.stderr.flush()
+    sys.stdout.flush()
+
+
+def libc_is_musl():
     """
-    Simple getter for current stable binutils release
-    :return: The current stable release of binutils
+    Returns whether or not the current libc is musl or not.
     """
-    return "binutils-2.38"
+    # musl's ldd does not appear to support '--version' directly, as its return
+    # code is 1 and it prints all text to stderr. However, it does print the
+    # version information so it is good enough. Just 'check=False' it and move
+    # on.
+    ldd_out = subprocess.run(['ldd', '--version'],
+                             capture_output=True,
+                             check=False,
+                             text=True)
+    if re.search('musl', ldd_out.stderr if ldd_out.stderr else ldd_out.stdout):
+        return True
+    return False
 
 
-def download_binutils(folder):
+def get_duration(start_seconds, end_seconds=None):
     """
-    Downloads the latest stable version of binutils
-    :param folder: Directory to download binutils to
+    Formats a duration in days, hours, minutes, and seconds.
+    :param start_seconds: The start of the duration
+    :param end_seconds: The end of the duration; can be omitted for current time
+    :return: A string with the non-zero parts of the duration.
     """
-    binutils = current_binutils()
-    binutils_folder = folder.joinpath(binutils)
-    if not binutils_folder.is_dir():
-        # Remove any previous copies of binutils
-        for entity in folder.glob('binutils-*'):
-            if entity.is_dir():
-                shutil.rmtree(entity.as_posix())
-            else:
-                entity.unlink()
+    if not end_seconds:
+        end_seconds = time.time()
+    seconds = int(end_seconds - start_seconds)
+    days, seconds = divmod(seconds, 60 * 60 * 24)
+    hours, seconds = divmod(seconds, 60 * 60)
+    minutes, seconds = divmod(seconds, 60)
 
-        # Download the tarball
-        binutils_tarball = folder.joinpath(binutils + ".tar.xz")
-        link = "---for-links---"
-        if link == "---for-links---":
-            link = "https://ftp.gnu.org/gnu/binutils/" + binutils_tarball.name
-        subprocess.run([
-            "curl", "-LSs", "-o",
-            binutils_tarball.as_posix(),
-            link
-        ],
-                       check=True)
-        verify_binutils_checksum(binutils_tarball)
-        # Extract the tarball then remove it
-        subprocess.run(["tar", "-xJf", binutils_tarball.name],
-                       check=True,
-                       cwd=folder.as_posix())
-        create_gitignore(binutils_folder)
-        binutils_tarball.unlink()
+    parts = []
+    if days:
+        parts.append(f"{days}d")
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes:
+        parts.append(f"{minutes}m")
+    parts.append(f"{seconds}s")
 
-
-def verify_binutils_checksum(file):
-    # Check the SHA512 checksum of the downloaded file with a known good one
-    # The sha512.sum file from <sourceware.org> ships the SHA512 checksums
-    # Link: https://sourceware.org/pub/binutils/releases/sha512.sum
-    file_hash = hashlib.sha512()
-    with file.open("rb") as f:
-        while True:
-            data = f.read(131072)
-            if not data:
-                break
-            file_hash.update(data)
-    good_hash = "8bf0b0d193c9c010e0518ee2b2e5a830898af206510992483b427477ed178396cd210235e85fd7bd99a96fc6d5eedbeccbd48317a10f752b7336ada8b2bb826d"
-    if file_hash.hexdigest() != good_hash:
-        raise RuntimeError(
-            "binutils: SHA512 checksum does not match known good one!")
+    return ' '.join(parts)
 
 
 def print_header(string):
@@ -85,13 +72,14 @@ def print_header(string):
     # Use bold cyan for the header so that the headers
     # are not intepreted as success (green) or failed (red)
     print("\033[01;36m")
-    for x in range(0, len(string) + 6):
+    for _ in range(0, len(string) + 6):
         print("=", end="")
-    print("\n== %s ==" % string)
-    for x in range(0, len(string) + 6):
+    print(f"\n== {string} ==")
+    for _ in range(0, len(string) + 6):
         print("=", end="")
     # \033[0m resets the color back to the user's default
     print("\n\033[0m")
+    flush_std_err_out()
 
 
 def print_error(string):
@@ -100,7 +88,7 @@ def print_error(string):
     :param string: String to print
     """
     # Use bold red for error
-    print("\033[01;31m%s\n\033[0m" % string)
+    print(f"\033[01;31m{string}\n\033[0m", flush=True)
 
 
 def print_warning(string):
@@ -109,4 +97,4 @@ def print_warning(string):
     :param string: String to print
     """
     # Use bold yellow for error
-    print("\033[01;33m%s\n\033[0m" % string)
+    print(f"\033[01;33m{string}\n\033[0m", flush=True)
