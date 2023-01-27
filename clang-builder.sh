@@ -29,7 +29,7 @@ EXTRA_ARGS=()
 EXTRA_PRJ=""
 UseBranch=""
 
-for ListBranch in 10 11 12 13 14 main
+for ListBranch in 10 11 12 13 14 15 16 main
 do
     if [[ "$ListBranch" == "$EsOne" ]];then
         if [[ "$ListBranch" == "main" ]];then
@@ -74,11 +74,14 @@ if [[ "$(cat result-c.txt)" != 'blank' ]];then
     GetDt="$(cat result-c.txt)"
     wget -q https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.sha512 -O sha512 || echo 'blank' > sha512
     if [[ "$(cat sha512)" != 'blank' ]];then
+        urlA="$(echo https://sourceware.org/pub/binutils/releases/{binutils_tarball.name} | sed -r 's/\//\\\//g')"
+        urlB="$(echo https://sourceware.org/pub/binutils/releases/sha512.sum | sed -r 's/\//\\\//g')"
         urls="$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.tar.xz" | sed -r 's/\//\\\//g' )"
+        urlt="$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.sha512" | sed -r 's/\//\\\//g' )"
         sha512x="$(cat sha512)"
-        sed -i "s/ = "'"'"---for-links---/ = "'"'"${urls}/" utils.py && msg "update url to ${urls}"
-        sed -i "s/binutils-2.38/binutils-master/" utils.py && msg "update binutils-2.38 to binutils-master"
-        sed -i "s/8bf0b0d193c9c010e0518ee2b2e5a830898af206510992483b427477ed178396cd210235e85fd7bd99a96fc6d5eedbeccbd48317a10f752b7336ada8b2bb826d/${sha512x}/" utils.py && msg "update sha to ${sha512x}"
+        sed -i "s/{$urlA}/${urls}/" build-binutils.py && msg "update url to ${urls}"
+        sed -i "s/binutils-2.40/binutils-master/" build-binutils.py && msg "update binutils-2.40 to binutils-master"
+        sed -i "s/$urlB/${urlt}/" build-binutils.py && msg "update sha to ${sha512x}"
         rm -rf sha512
     fi
 fi
