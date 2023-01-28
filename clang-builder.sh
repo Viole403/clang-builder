@@ -116,23 +116,43 @@ fi
 TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
+# EXTRA_ARGS+=("--pgo kernel-defconfig-slim")
 # --projects "clang;lld;polly${EXTRA_PRJ}" \
-python3 build-llvm.py \
+./build-llvm.py \
     --clang-vendor "ZyC" \
     --targets "AArch64;ARM;X86" \
     --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3'" \
     --shallow-clone \
     --branch "$UseBranch" \
-    --pgo "kernel-defconfig-slim" \
     "${EXTRA_ARGS[@]}" || fail="y"
 
 # echo "idk" > $DIR/stop-spam-echo.txt
+
+
+UploadAgain()
+{
+    fail="n"
+    ./github-release upload \
+        --security-token "$GIT_SECRET" \
+        --user ZyCromerZ \
+        --repo Clang \
+        --tag ${clang_version}-${TagsDate}-release \
+        --name "$ZipName" \
+        --file "$ZipName" || fail="y"
+    TotalTry=$(($TotalTry+1))
+    if [ "$fail" == "y" ];then
+        if [ "$TotalTry" != "360" ];then
+            sleep 10s
+            UploadAgain
+        fi
+    fi
+}
 
 if [[ "$fail" == "n" ]];then
     $DIR/install/bin/clang --version
 
     # Build binutils
-    python3 build-binutils.py --targets aarch64 arm x86_64
+    ./build-binutils.py --targets aarch64 arm x86_64
     # Remove unused products
     # rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
     # IFS=$'\n'
@@ -208,86 +228,67 @@ if [[ "$fail" == "n" ]];then
     echo "* <a href=$ClangLink>$ZipName</a>" >> readme.md
     tar -czvf ../"$ZipName" *
     popd || exit
-fi
 
-UploadAgain()
-{
-    fail="n"
-    ./github-release upload \
-        --security-token "$GIT_SECRET" \
-        --user ZyCromerZ \
-        --repo Clang \
-        --tag ${clang_version}-${TagsDate}-release \
-        --name "$ZipName" \
-        --file "$ZipName" || fail="y"
-    TotalTry=$(($TotalTry+1))
-    if [ "$fail" == "y" ];then
-        if [ "$TotalTry" != "360" ];then
-            sleep 10s
-            UploadAgain
-        fi
-    fi
-}
-
-if [[ ! -z "$clang_version" ]];then
-    git clone https://${GIT_SECRET}@github.com/ZyCromerZ/Clang -b main $(pwd)/FromGithub
-    pushd $(pwd)/FromGithub || exit
-    echo "$TagsDateF" > Clang-$EsOne-lastbuild.txt
-    echo "$ClangLink" > Clang-$EsOne-link.txt
-    echo "$llvm_commit" > Clang-$EsOne-commit.txt
-    git add . && git commit -asm "Upload $clang_version_f"
-    git checkout -b ${clang_version}-${TagsDate}
-    cp ../install/README.md .
-    git add . && git commit -asm "Update Readme.md"
-    git tag ${clang_version}-${TagsDate}-release -m "Upload $clang_version_f"
-    git push -f origin main ${clang_version}-${TagsDate}
-    git push -f origin ${clang_version}-${TagsDate}-release
-    if [[ "$UseBranch" == "main" ]];then
-        git checkout --orphan for-strip
-        rm -fr * 
-        cp -af $DIR/install/bin/aarch64-linux-gnu-strip .
-        cp -af $DIR/install/bin/arm-linux-gnueabi-strip .
-        cp -af $DIR/install/bin/strip .
-        echo "# Just For Personal Use Only" > README.md
-        git add . && git commit -asm "add strip from ${clang_version_f}"
-        git push -f origin for-strip
-    fi
-    popd || exit
-
-    chmod +x github-release
-    ./github-release release \
-        --security-token "$GIT_SECRET" \
-        --user ZyCromerZ \
-        --repo Clang \
-        --tag ${clang_version}-${TagsDate}-release \
-        --name "Clang-${clang_version}-${TagsDate}-release" \
-        --description "$(cat install/README.md)"
-
-    # ./github-release upload \
-    #     --security-token "$GIT_SECRET" \
-    #     --user ZyCromerZ \
-    #     --repo Clang \
-    #     --tag ${clang_version}-${TagsDate}-release \
-    #     --name "$ZipName" \
-    #     --file "$ZipName" || fail="y"
-
-    TotalTry="0"
-    UploadAgain
-
-    if [ "$fail" == "y" ];then
+    if [[ ! -z "$clang_version" ]];then
+        git clone https://${GIT_SECRET}@github.com/ZyCromerZ/Clang -b main $(pwd)/FromGithub
         pushd $(pwd)/FromGithub || exit
-        git push -d origin ${clang_version}-${TagsDate}
-        git push -d origin ${clang_version}-${TagsDate}-release
-        git checkout main
-        git reset --hard HEAD~1
-        git push -f origin main
+        echo "$TagsDateF" > Clang-$EsOne-lastbuild.txt
+        echo "$ClangLink" > Clang-$EsOne-link.txt
+        echo "$llvm_commit" > Clang-$EsOne-commit.txt
+        git add . && git commit -asm "Upload $clang_version_f"
+        git checkout -b ${clang_version}-${TagsDate}
+        cp ../install/README.md .
+        git add . && git commit -asm "Update Readme.md"
+        git tag ${clang_version}-${TagsDate}-release -m "Upload $clang_version_f"
+        git push -f origin main ${clang_version}-${TagsDate}
+        git push -f origin ${clang_version}-${TagsDate}-release
+        if [[ "$UseBranch" == "main" ]];then
+            git checkout --orphan for-strip
+            rm -fr * 
+            cp -af $DIR/install/bin/aarch64-linux-gnu-strip .
+            cp -af $DIR/install/bin/arm-linux-gnueabi-strip .
+            cp -af $DIR/install/bin/strip .
+            echo "# Just For Personal Use Only" > README.md
+            git add . && git commit -asm "add strip from ${clang_version_f}"
+            git push -f origin for-strip
+        fi
         popd || exit
+
+        chmod +x github-release
+        ./github-release release \
+            --security-token "$GIT_SECRET" \
+            --user ZyCromerZ \
+            --repo Clang \
+            --tag ${clang_version}-${TagsDate}-release \
+            --name "Clang-${clang_version}-${TagsDate}-release" \
+            --description "$(cat install/README.md)"
+
+        # ./github-release upload \
+        #     --security-token "$GIT_SECRET" \
+        #     --user ZyCromerZ \
+        #     --repo Clang \
+        #     --tag ${clang_version}-${TagsDate}-release \
+        #     --name "$ZipName" \
+        #     --file "$ZipName" || fail="y"
+
+        TotalTry="0"
+        UploadAgain
+
+        if [ "$fail" == "y" ];then
+            pushd $(pwd)/FromGithub || exit
+            git push -d origin ${clang_version}-${TagsDate}
+            git push -d origin ${clang_version}-${TagsDate}-release
+            git checkout main
+            git reset --hard HEAD~1
+            git push -f origin main
+            popd || exit
+        else
+            curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001628919239" \
+                -d "disable_web_page_preview=true" \
+                -d "parse_mode=html" \
+                -d text="New Toolchain Already Builded boy%0ADate : <code>$TagsDateF</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
+        fi
     else
-        curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001628919239" \
-            -d "disable_web_page_preview=true" \
-            -d "parse_mode=html" \
-            -d text="New Toolchain Already Builded boy%0ADate : <code>$TagsDateF</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
+        msg "clang version not found, maybe broken :/"
     fi
-else
-    msg "clang version not found, maybe broken :/"
 fi

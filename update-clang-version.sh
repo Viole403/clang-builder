@@ -57,4 +57,5 @@ function getclang()
         fi
     fi
 }
+# register_clang_version 14
 getclang "$1"
