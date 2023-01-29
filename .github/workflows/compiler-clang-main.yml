@@ -1,11 +1,11 @@
 name: Clang Builder
 
 on:
-  # push:
-  #   branches:
-  #     - clang/*
-  schedule:
-    - cron: '15 1 * * *'
+  push:
+    branches:
+      - clang/main-b
+  # schedule:
+  #   - cron: '15 1 * * *'
   workflow_dispatch:
 
 env:
@@ -24,17 +24,41 @@ jobs:
 
       matrix:
         config:
+          - jobs: "10"
+            type: "clang"
+            check_duplicate: "N"
+
+          - jobs: "11"
+            type: "clang"
+            check_duplicate: "N"
+
+          - jobs: "12"
+            type: "clang"
+            check_duplicate: "N"
+
+          - jobs: "13"
+            type: "clang"
+            check_duplicate: "N"
+
+          - jobs: "14"
+            type: "clang"
+            check_duplicate: "N"
+
+          - jobs: "15"
+            type: "clang"
+            check_duplicate: "N"
+
           - jobs: "16"
             type: "clang"
-            check_duplicate: "Y"
+            check_duplicate: "N"
 
           - jobs: "main"
             type: "clang"
-            check_duplicate: "Y"
+            check_duplicate: "N"
 
           - jobs: "info"
             type: "info"
-            check_duplicate: "Y"
+            check_duplicate: "N"
 
     name: Clang-${{ matrix.config.jobs }}
     

@@ -2,7 +2,7 @@ function msg() {
     echo -e "\e[1;32m$*\e[0m"
 }
 function register_clang_version() {
-    local version=$1
+    local version=$GetNumber
     if [[ -d /usr/lib/llvm-$version/bin ]];then
         CMDx=(--install /usr/bin/clang clang /usr/lib/llvm-$version/bin/clang 500)
         for ListCmds in $(ls /usr/lib/llvm-$version/bin)
@@ -58,4 +58,20 @@ function getclang()
     fi
 }
 # register_clang_version 14
-getclang "$1"
+# getclang "$1"
+GetNumber=${1}
+if [[ "$GetNumber" == "10" ]];then
+    apt-get -y install clang-10 lld-10
+    register_clang_version 10
+elif [[ "$GetNumber" == "11" ]];then
+    apt-get -y install clang-11 lld-11
+    register_clang_version 11
+elif [[ "$GetNumber" == "12" ]];then
+    apt-get -y install clang-12 lld-12
+    register_clang_version 12
+elif [[ "$GetNumber" == "13" ]];then
+    apt-get -y install clang-13 lld-13
+    register_clang_version 13
+else
+    register_clang_version 14
+fi
