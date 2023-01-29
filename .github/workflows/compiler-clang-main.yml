@@ -85,7 +85,7 @@ jobs:
           bash update-clang-version.sh ${{ matrix.config.jobs }}
           bash clang-builder.sh ${{ matrix.config.jobs }} gi ${{ matrix.config.check_duplicate }}
 
-      - name: Build TC
+      - name: Update Info
         if: matrix.config.type == 'info'
         run: |
           git clone https://${GIT_SECRET_MAIN}@github.com/Clurfe/clang-builder.git -b clang/main
