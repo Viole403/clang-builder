@@ -11,6 +11,7 @@ git config --global http.sslverify false
 # Set a directory
 DIR="$(pwd ...)"
 EsOne="${1}"
+CheckDuplicate="${2}"
 fail="n"
 TagsDate="$(date +"%Y%m%d")"
 TagsDateF="$(date +"%Y%m%d")"
@@ -86,18 +87,20 @@ if [[ "$(cat result-c.txt)" != 'blank' ]];then
     fi
 fi
 
-if [[ "$(cat result.txt)" == *"$TagsDateF"* ]];then
-    # Stop="Y"
-    msg "Today Clang $EsOne build already compiled"
-    exit
-# elif [[ "$(cat result.txt)" == "blank" ]];then
-#     Stop="N"
-fi
+if [[ "$CheckDuplicate" == "Y" ]];then
+    if [[ "$(cat result.txt)" == *"$TagsDateF"* ]];then
+        # Stop="Y"
+        msg "Today Clang $EsOne build already compiled"
+        exit
+    # elif [[ "$(cat result.txt)" == "blank" ]];then
+    #     Stop="N"
+    fi
 
-if [[ "$(curl -X GET -H "Cache-Control: no-cache" https://api.github.com/repos/llvm/llvm-project/commits/$UseBranch | grep commit)" == *"commits/$(cat result-b.txt)"* ]];then
-    Stop="Y"
-    msg "Latest clang $EsOne already compiled"
-    exit
+    if [[ "$(curl -X GET -H "Cache-Control: no-cache" https://api.github.com/repos/llvm/llvm-project/commits/$UseBranch | grep commit)" == *"commits/$(cat result-b.txt)"* ]];then
+        Stop="Y"
+        msg "Latest clang $EsOne already compiled"
+        exit
+    fi
 fi
 
 rm -rf result.txt result-b.txt result-c.txt

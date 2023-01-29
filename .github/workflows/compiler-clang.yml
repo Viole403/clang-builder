@@ -1,59 +1,71 @@
-name: Building new Clang
+name: Clang Builder
 
-# on:
-#   push:
-#     branches:
-#       - clang/*
-#   schedule:
-#     - cron: '15 1 * * *'
+on:
+  # push:
+  #   branches:
+  #     - clang/*
+  # schedule:
+  #   - cron: '15 1 * * *'
+  workflow_dispatch:
 
 env:
   GITLAB_NAME: ${{ secrets.GITLAB_NAME }}
   GITLAB_SECRET: ${{ secrets.GITLAB_SECRET }}
   BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
   GIT_SECRET: ${{ secrets.GIT_SECRET }}
+  GIT_SECRET_MAIN: ${{ secrets.GIT_SECRET_MAIN }}
 
 jobs:
-  TigaLebas:
+  build:
 
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+        config:
+          - jobs: "main"
+            type: "clang"
+            check_duplicate: "Y"
+
+          - jobs: "info"
+            type: "info"
+            check_duplicate: "Y"
+
+    name: Clang-${{ matrix.config.jobs }}
+    
     runs-on: ubuntu-22.04
 
     container: 
       image: zycromerz/tcdocker:v2
 
     steps:
-    - name: checkout
-      uses: actions/checkout@v2
-      with:
-        path: clang-13
 
-    - name: Build TC
-      run: |
-        cd clang-13
-        export DEBIAN_FRONTEND=noninteractive
-        export PATH=/usr/bin/core_perl:$PATH
-        bash ci.sh deps
-        bash update-clang-version.sh 13
-        bash clang-builder.sh 13 gi
+      - name: checkout
+        if: matrix.config.type == 'clang'
+        uses: actions/checkout@v2
+        with:
+          path: clang-${{ matrix.config.jobs }}
 
-  EmpatLebas:
+      - name: Build TC
+        if: matrix.config.type == 'clang'
+        run: |
+          cd clang-${{ matrix.config.jobs }}
+          export DEBIAN_FRONTEND=noninteractive
+          export PATH=/usr/bin/core_perl:$PATH
+          bash ci.sh deps
+          bash update-clang-version.sh ${{ matrix.config.jobs }}
+          bash clang-builder.sh ${{ matrix.config.jobs }} gi ${{ matrix.config.check_duplicate }}
 
-    runs-on: ubuntu-22.04
-
-    container: 
-      image: zycromerz/tcdocker:v2
-
-    steps:
-    - name: checkout
-      uses: actions/checkout@v2
-      with:
-        path: clang-14
-
-    - name: Build TC
-      run: |
-        cd clang-14
-        export DEBIAN_FRONTEND=noninteractive
-        export PATH=/usr/bin/core_perl:$PATH
-        bash ci.sh deps
-        bash update-clang-version.sh 14
-        bash clang-builder.sh 14 gi
+      - name: Build TC
+        if: matrix.config.type == 'info'
+        run: |
+          git clone https://${GIT_SECRET_MAIN}@github.com/Clurfe/clang-builder.git -b clang/main
+          cd clang-builder
+          echo "$(date +"%Y%m%d")" >> last-build.txt
+          git config user.name "Clurfe"
+          git config user.email "zycromerz@gmail.com"
+          git add last-build.txt
+          git commit -sm "update last-build.txt to $(date +"%Y%m%d")"
+          git show
+          git push --all origin -f
