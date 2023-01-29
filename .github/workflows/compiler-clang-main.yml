@@ -4,8 +4,8 @@ on:
   # push:
   #   branches:
   #     - clang/*
-  # schedule:
-  #   - cron: '15 1 * * *'
+  schedule:
+    - cron: '15 1 * * *'
   workflow_dispatch:
 
 env:
@@ -24,6 +24,10 @@ jobs:
 
       matrix:
         config:
+          - jobs: "16"
+            type: "clang"
+            check_duplicate: "Y"
+
           - jobs: "main"
             type: "clang"
             check_duplicate: "Y"
