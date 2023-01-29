@@ -79,9 +79,9 @@ if [[ "$(cat result-c.txt)" != 'blank' ]];then
         urls="$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.tar.xz" | sed -r 's/\//\\\//g' )"
         urlt="$(echo "https://github.com/ZyCromerZ/binutils-maker/releases/download/master-${GetDt}-up/binutils-master.sha512" | sed -r 's/\//\\\//g' )"
         sha512x="$(cat sha512)"
-        sed -i "s/{$urlA}/${urls}/" build-binutils.py && msg "update url to ${urls}"
+        sed -i "s/${urlA}/${urls}/" build-binutils.py && msg "update url to ${urls}"
         sed -i "s/binutils-2.40/binutils-master/" build-binutils.py && msg "update binutils-2.40 to binutils-master"
-        sed -i "s/$urlB/${urlt}/" build-binutils.py && msg "update sha to ${sha512x}"
+        sed -i "s/${urlB}/${urlt}/" build-binutils.py && msg "update sha to ${sha512x}"
         rm -rf sha512
     fi
 fi
