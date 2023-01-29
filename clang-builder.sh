@@ -134,19 +134,42 @@ TomTal=$(($TomTal+1))
 
 UploadAgain()
 {
-    fail="n"
-    ./github-release upload \
-        --security-token "$GIT_SECRET" \
-        --user ZyCromerZ \
-        --repo Clang \
-        --tag ${clang_version}-${TagsDate}-release \
-        --name "$ZipName" \
-        --file "$ZipName" || fail="y"
-    TotalTry=$(($TotalTry+1))
-    if [ "$fail" == "y" ];then
-        if [ "$TotalTry" != "360" ];then
-            sleep 10s
-            UploadAgain
+    # fail="n"
+    if [[ "$fail" == "n" ]];then
+        ./github-release upload \
+            --security-token "$GIT_SECRET" \
+            --user ZyCromerZ \
+            --repo Clang \
+            --tag ${clang_version}-${TagsDate}-release \
+            --name "$ZipName" \
+            --file "$ZipName" &>reup-info.txt || fail="y"
+        TotalTry=$(($TotalTry+1))
+        if [ "$fail" == "y" ];then
+            if [[ "$(cat reup-info.txt)" == *"already_exists"* ]];then
+                TotalTry="360"
+                fail="n"
+                msg "upload failed, because file already exists"
+            fi
+            if [[ "$(cat reup-info.txt)" == *"Average"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Speed"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Time"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Current"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Dload"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Upload"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Total"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Spent"* ]] && \
+                [[ "$(cat reup-info.txt)" == *"Left"* ]];then
+                TotalTry="360"
+                fail="n"
+                msg "Upload Success"
+            fi
+            if [ "$TotalTry" != "360" ];then
+                sleep 10s
+                msg "upload failed, re-upload again"
+                UploadAgain
+            else
+                rm -rf reup-info.txt
+            fi
         fi
     fi
 }
