@@ -62,6 +62,17 @@ fi
 #     exit
 # fi
 
+# AddBolt() {
+#     EXTRA_ARGS+=("--bolt")
+#     EXTRA_PRJ=";bolt"
+# }
+
+# if [[ "$EsOne" != "main"  ]] && [[ "$EsOne" -gt "13"  ]];then
+#     AddBolt
+# elif [[ "$EsOne" == "main"  ]];then
+#     AddBolt
+# fi
+
 if [[ -z "${GIT_SECRET}" ]] || [[ -z "${BOT_TOKEN}" ]];then
     msg "something is missing, aborting . . ."
     exit
@@ -115,14 +126,16 @@ TomTal=$(nproc)
 TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
-# EXTRA_ARGS+=("--pgo kernel-defconfig-slim")
-# --projects "clang;lld;polly${EXTRA_PRJ}" \
+# --targets "AArch64;ARM;X86" \
+msg "projects : clang;lld;polly${EXTRA_PRJ}"
 ./build-llvm.py \
     --clang-vendor "ZyC" \
-    --targets "AArch64;ARM;X86" \
+    --targets "AArch64;ARM" \
     --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3'" \
     --shallow-clone \
     --branch "$UseBranch" \
+    --projects "clang;lld;polly${EXTRA_PRJ}" \
+    --pgo "kernel-defconfig-slim" \
     "${EXTRA_ARGS[@]}" || fail="y"
 
 # echo "idk" > $DIR/stop-spam-echo.txt
@@ -171,8 +184,8 @@ UploadAgain()
 if [[ "$fail" == "n" ]];then
     $DIR/install/bin/clang --version
 
-    # Build binutils
-    ./build-binutils.py --targets aarch64 arm x86_64
+    # Build binutils --targets aarch64 arm x86_64
+    ./build-binutils.py --targets aarch64 arm
     # Remove unused products
     # rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
     # IFS=$'\n'
