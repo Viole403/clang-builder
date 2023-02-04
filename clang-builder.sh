@@ -21,7 +21,7 @@ ccache -M 10G
 #     StATS=1
 #     while [ ! -f $DIR/stop-spam-echo.txt ];
 #     do
-#         msg ">> for prevent no output <<"
+#         msg ">> processing . . . <<"
 #         sleep 10s
 #     done
 # }
@@ -60,6 +60,17 @@ fi
 # else
 #     msg "huh ???"
 #     exit
+# fi
+
+# AddBolt() {
+#     EXTRA_ARGS+=("--bolt")
+#     EXTRA_PRJ=";bolt"
+# }
+
+# if [[ "$EsOne" != "main"  ]] && [[ "$EsOne" -gt "13"  ]];then
+#     AddBolt
+# elif [[ "$EsOne" == "main"  ]];then
+#     AddBolt
 # fi
 
 if [[ -z "${GIT_SECRET}" ]] || [[ -z "${BOT_TOKEN}" ]];then
@@ -112,22 +123,20 @@ rm -rf result.txt result-b.txt result-c.txt
 # fi
 
 TomTal=$(nproc)
-if [[ ! -z "${2}" ]];then
-    TomTal=$(($TomTal*4))
-    # EXTRA_ARGS+=(--install-stage1-only)
-fi 
 TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
-# EXTRA_ARGS+=("--pgo kernel-defconfig-slim")
-# --projects "clang;lld;polly${EXTRA_PRJ}" \
+# --targets "AArch64;ARM;X86" \
+# --pgo "kernel-defconfig-slim" \
+msg "projects : clang;lld;polly${EXTRA_PRJ}"
 ./build-llvm.py \
     --clang-vendor "ZyC" \
-    --targets "AArch64;ARM;X86" \
+    --targets "AArch64;ARM" \
     --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3'" \
     --shallow-clone \
     --branch "$UseBranch" \
-    "${EXTRA_ARGS[@]}" || fail="y"
+    --projects "clang;lld;polly${EXTRA_PRJ}" \
+    ${EXTRA_ARGS[@]} || fail="y"
 
 # echo "idk" > $DIR/stop-spam-echo.txt
 
@@ -135,41 +144,39 @@ TomTal=$(($TomTal+1))
 UploadAgain()
 {
     # fail="n"
-    if [[ "$fail" == "n" ]];then
-        ./github-release upload \
-            --security-token "$GIT_SECRET" \
-            --user ZyCromerZ \
-            --repo Clang \
-            --tag ${clang_version}-${TagsDate}-release \
-            --name "$ZipName" \
-            --file "$ZipName" &>reup-info.txt || fail="y"
-        TotalTry=$(($TotalTry+1))
-        if [ "$fail" == "y" ];then
-            if [[ "$(cat reup-info.txt)" == *"already_exists"* ]];then
-                TotalTry="360"
-                fail="n"
-                msg "upload failed, because file already exists"
-            fi
-            if [[ "$(cat reup-info.txt)" == *"Average"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Speed"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Time"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Current"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Dload"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Upload"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Total"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Spent"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Left"* ]];then
-                TotalTry="360"
-                fail="n"
-                msg "Upload Success"
-            fi
-            if [ "$TotalTry" != "360" ];then
-                sleep 10s
-                msg "upload failed, re-upload again"
-                UploadAgain
-            else
-                rm -rf reup-info.txt
-            fi
+    ./github-release upload \
+        --security-token "$GIT_SECRET" \
+        --user ZyCromerZ \
+        --repo Clang \
+        --tag ${clang_version}-${TagsDate}-release \
+        --name "$ZipName" \
+        --file "$ZipName" &>reup-info.txt || fail="y"
+    TotalTry=$(($TotalTry+1))
+    if [ "$fail" == "y" ];then
+        if [[ "$(cat reup-info.txt)" == *"already_exists"* ]];then
+            TotalTry="360"
+            fail="n"
+            msg "upload failed, because file already exists"
+        fi
+        if [[ "$(cat reup-info.txt)" == *"Average"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Speed"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Time"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Current"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Dload"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Upload"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Total"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Spent"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Left"* ]];then
+            TotalTry="360"
+            fail="n"
+            msg "Upload Success"
+        fi
+        if [ "$TotalTry" != "360" ];then
+            sleep 10s
+            msg "upload failed, re-upload again"
+            UploadAgain
+        else
+            rm -rf reup-info.txt
         fi
     fi
 }
@@ -177,8 +184,8 @@ UploadAgain()
 if [[ "$fail" == "n" ]];then
     $DIR/install/bin/clang --version
 
-    # Build binutils
-    ./build-binutils.py --targets aarch64 arm x86_64
+    # Build binutils --targets aarch64 arm x86_64
+    ./build-binutils.py --targets aarch64 arm
     # Remove unused products
     # rm -f $DIR/install/lib/*.a $DIR/install/lib/*.la $DIR/install/lib/clang/*/lib/linux/*.a*
     # IFS=$'\n'
