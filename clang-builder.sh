@@ -127,6 +127,7 @@ TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
 # --targets "AArch64;ARM;X86" \
+# --pgo "kernel-defconfig-slim" \
 msg "projects : clang;lld;polly${EXTRA_PRJ}"
 ./build-llvm.py \
     --clang-vendor "ZyC" \
@@ -135,8 +136,7 @@ msg "projects : clang;lld;polly${EXTRA_PRJ}"
     --shallow-clone \
     --branch "$UseBranch" \
     --projects "clang;lld;polly${EXTRA_PRJ}" \
-    --pgo "kernel-defconfig-slim" \
-    "${EXTRA_ARGS[@]}" || fail="y"
+    ${EXTRA_ARGS[@]} || fail="y"
 
 # echo "idk" > $DIR/stop-spam-echo.txt
 
