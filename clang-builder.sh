@@ -21,7 +21,7 @@ ccache -M 10G
 #     StATS=1
 #     while [ ! -f $DIR/stop-spam-echo.txt ];
 #     do
-#         msg ">> for prevent no output <<"
+#         msg ">> processing . . . <<"
 #         sleep 10s
 #     done
 # }
@@ -112,10 +112,6 @@ rm -rf result.txt result-b.txt result-c.txt
 # fi
 
 TomTal=$(nproc)
-if [[ ! -z "${2}" ]];then
-    TomTal=$(($TomTal*4))
-    # EXTRA_ARGS+=(--install-stage1-only)
-fi 
 TomTal=$(($TomTal+1))
 # unlimitedEcho &
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
@@ -135,41 +131,39 @@ TomTal=$(($TomTal+1))
 UploadAgain()
 {
     # fail="n"
-    if [[ "$fail" == "n" ]];then
-        ./github-release upload \
-            --security-token "$GIT_SECRET" \
-            --user ZyCromerZ \
-            --repo Clang \
-            --tag ${clang_version}-${TagsDate}-release \
-            --name "$ZipName" \
-            --file "$ZipName" &>reup-info.txt || fail="y"
-        TotalTry=$(($TotalTry+1))
-        if [ "$fail" == "y" ];then
-            if [[ "$(cat reup-info.txt)" == *"already_exists"* ]];then
-                TotalTry="360"
-                fail="n"
-                msg "upload failed, because file already exists"
-            fi
-            if [[ "$(cat reup-info.txt)" == *"Average"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Speed"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Time"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Current"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Dload"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Upload"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Total"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Spent"* ]] && \
-                [[ "$(cat reup-info.txt)" == *"Left"* ]];then
-                TotalTry="360"
-                fail="n"
-                msg "Upload Success"
-            fi
-            if [ "$TotalTry" != "360" ];then
-                sleep 10s
-                msg "upload failed, re-upload again"
-                UploadAgain
-            else
-                rm -rf reup-info.txt
-            fi
+    ./github-release upload \
+        --security-token "$GIT_SECRET" \
+        --user ZyCromerZ \
+        --repo Clang \
+        --tag ${clang_version}-${TagsDate}-release \
+        --name "$ZipName" \
+        --file "$ZipName" &>reup-info.txt || fail="y"
+    TotalTry=$(($TotalTry+1))
+    if [ "$fail" == "y" ];then
+        if [[ "$(cat reup-info.txt)" == *"already_exists"* ]];then
+            TotalTry="360"
+            fail="n"
+            msg "upload failed, because file already exists"
+        fi
+        if [[ "$(cat reup-info.txt)" == *"Average"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Speed"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Time"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Current"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Dload"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Upload"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Total"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Spent"* ]] && \
+            [[ "$(cat reup-info.txt)" == *"Left"* ]];then
+            TotalTry="360"
+            fail="n"
+            msg "Upload Success"
+        fi
+        if [ "$TotalTry" != "360" ];then
+            sleep 10s
+            msg "upload failed, re-upload again"
+            UploadAgain
+        else
+            rm -rf reup-info.txt
         fi
     fi
 }

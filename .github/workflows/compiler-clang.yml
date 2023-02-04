@@ -55,7 +55,7 @@ jobs:
           export PATH=/usr/bin/core_perl:$PATH
           bash ci.sh deps
           bash update-clang-version.sh ${{ matrix.config.jobs }}
-          bash clang-builder.sh ${{ matrix.config.jobs }} gi ${{ matrix.config.check_duplicate }}
+          bash clang-builder.sh ${{ matrix.config.jobs }} ${{ matrix.config.check_duplicate }}
 
       - name: Update Info
         if: matrix.config.type == 'info'
