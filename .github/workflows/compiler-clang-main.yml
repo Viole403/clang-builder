@@ -24,6 +24,10 @@ jobs:
 
       matrix:
         config:
+          - jobs: "15"
+            type: "clang"
+            check_duplicate: "Y"
+
           - jobs: "16"
             type: "clang"
             check_duplicate: "Y"
