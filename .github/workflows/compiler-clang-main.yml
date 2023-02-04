@@ -32,17 +32,17 @@ jobs:
             type: "clang"
             check_duplicate: "N"
 
-          - jobs: "12"
-            type: "clang"
-            check_duplicate: "N"
+          # - jobs: "12"
+          #   type: "clang"
+          #   check_duplicate: "N"
 
           - jobs: "13"
             type: "clang"
             check_duplicate: "N"
 
-          - jobs: "14"
-            type: "clang"
-            check_duplicate: "N"
+          # - jobs: "14"
+          #   type: "clang"
+          #   check_duplicate: "N"
 
           - jobs: "15"
             type: "clang"
