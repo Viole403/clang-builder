@@ -18,6 +18,8 @@ env:
 jobs:
   build:
 
+    timeout-minutes: 360
+
     strategy:
 
       fail-fast: false
