@@ -32,8 +32,8 @@ jobs:
             type: "clang"
             check_duplicate: "N"
 
-          - jobs: "12
-            type: "clang""
+          - jobs: "12"
+            type: "clang"
             check_duplicate: "N"
 
           - jobs: "13"
