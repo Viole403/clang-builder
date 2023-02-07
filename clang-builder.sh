@@ -128,14 +128,16 @@ TomTal=$(($TomTal+1))
 # EXTRA_ARGS+=("--pgo kernel-defconfig")
 # --targets "AArch64;ARM;X86" \
 # --pgo "kernel-defconfig-slim" \
-msg "projects : clang;lld;polly${EXTRA_PRJ}"
+msg "projects : clang;compiler-rt;lld;polly;openmp${EXTRA_PRJ}"
 ./build-llvm.py \
     --clang-vendor "ZyC" \
     --targets "AArch64;ARM;X86" \
-    --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3'" \
+    --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3' LLVM_USE_LINKER=lld LLVM_ENABLE_LLD=ON" \
     --shallow-clone \
     --branch "$UseBranch" \
-    --projects "clang;lld;polly${EXTRA_PRJ}" \
+    --projects "clang;compiler-rt;lld;polly;openmp${EXTRA_PRJ}" \
+    --no-ccache \
+    --quiet-cmake \
     ${EXTRA_ARGS[@]} || fail="y"
 
 # echo "idk" > $DIR/stop-spam-echo.txt
