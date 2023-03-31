@@ -298,13 +298,13 @@ if [[ "$fail" == "n" ]];then
             --name "Clang-${clang_version}-${TagsDate}-release" \
             --description "$(cat install/README.md)"
 
-        # ./github-release upload \
-        #     --security-token "$GIT_SECRET" \
-        #     --user ZyCromerZ \
-        #     --repo Clang \
-        #     --tag ${clang_version}-${TagsDate}-release \
-        #     --name "$ZipName" \
-        #     --file "$ZipName" || fail="y"
+        ./github-release upload \
+            --security-token "$GIT_SECRET" \
+            --user Viole403 \
+            --repo Nimow-Clang \
+            --tag ${clang_version}-${TagsDate}-release \
+            --name "$ZipName" \
+            --file "$ZipName" || fail="y"
 
         TotalTry="0"
         UploadAgain
@@ -318,7 +318,7 @@ if [[ "$fail" == "n" ]];then
             git push -f origin main
             popd || exit
         else
-            curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001628919239" \
+            curl -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" -d chat_id="-1001567103279" \
                 -d "disable_web_page_preview=true" \
                 -d "parse_mode=html" \
                 -d text="New Toolchain Already Builded boy%0ADate : <code>$TagsDateF</code>%0A<code> --- Detail Info About it --- </code>%0AClang version : <code>$clang_version_f</code>%0ABINUTILS version : <code>$binutils_ver</code>%0A%0ALink downloads : <code>$ClangLink</code>%0A%0A-- uWu --"
