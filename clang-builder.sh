@@ -130,7 +130,7 @@ TomTal=$(($TomTal+1))
 # --pgo "kernel-defconfig-slim" \
 msg "projects : clang;compiler-rt;lld;polly;openmp${EXTRA_PRJ}"
 ./build-llvm.py \
-    --clang-vendor "ZyC" \
+    --clang-vendor "Nimow" \
     --targets "AArch64;ARM;X86" \
     --defines "LLVM_PARALLEL_COMPILE_JOBS=$TomTal LLVM_PARALLEL_LINK_JOBS=$TomTal CMAKE_C_FLAGS='-g0 -O3' CMAKE_CXX_FLAGS='-g0 -O3' LLVM_USE_LINKER=lld LLVM_ENABLE_LLD=ON" \
     --shallow-clone \
@@ -148,8 +148,8 @@ UploadAgain()
     # fail="n"
     ./github-release upload \
         --security-token "$GIT_SECRET" \
-        --user ZyCromerZ \
-        --repo Clang \
+        --user Viole403 \
+        --repo Nimow-Clang \
         --tag ${clang_version}-${TagsDate}-release \
         --name "$ZipName" \
         --file "$ZipName" &>reup-info.txt || fail="y"
@@ -246,11 +246,11 @@ if [[ "$fail" == "n" ]];then
     clang_version="$($DIR/install/bin/clang --version | head -n1 | cut -d' ' -f4)"
     clang_version_f="$($DIR/install/bin/clang --version | head -n1)"
 
-    git config --global user.name 'ZyCromerZ'
+    git config --global user.name 'Viole403'
     git config --global user.email 'neetroid97@gmail.com'
 
     ZipName="Clang-$clang_version-${TagsDate}.tar.gz"
-    ClangLink="https://github.com/ZyCromerZ/Clang/releases/download/${clang_version}-${TagsDate}-release/$ZipName"
+    ClangLink="https://github.com/Viole403/Nimow-Clang/releases/download/${clang_version}-${TagsDate}-release/$ZipName"
 
     pushd $DIR/install || exit
     echo "# Quick Info" > README.md
@@ -265,7 +265,7 @@ if [[ "$fail" == "n" ]];then
     popd || exit
 
     if [[ ! -z "$clang_version" ]];then
-        git clone https://${GIT_SECRET}@github.com/ZyCromerZ/Clang -b main $(pwd)/FromGithub
+        git clone https://${GIT_SECRET}@github.com/Viole403/Nimow-Clang -b main $(pwd)/FromGithub
         pushd $(pwd)/FromGithub || exit
         echo "$TagsDateF" > Clang-$EsOne-lastbuild.txt
         echo "$ClangLink" > Clang-$EsOne-link.txt
@@ -292,8 +292,8 @@ if [[ "$fail" == "n" ]];then
         chmod +x github-release
         ./github-release release \
             --security-token "$GIT_SECRET" \
-            --user ZyCromerZ \
-            --repo Clang \
+            --user Viole403 \
+            --repo Nimow-Clang \
             --tag ${clang_version}-${TagsDate}-release \
             --name "Clang-${clang_version}-${TagsDate}-release" \
             --description "$(cat install/README.md)"
