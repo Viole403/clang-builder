@@ -27,7 +27,7 @@ function getclang()
         Fail="Y"
         ForceStop="Y"
     fi
-    [[ "${Fail}" == "N" ]] && wget -q $(curl https://raw.githubusercontent.com/Viole403/Nimow-Clang/main/Clang-$Ver-link.txt 2>/dev/null) -O "ZyC-Clang.tar.gz" || Fail="Y"
+    [[ "${Fail}" == "N" ]] && wget -q $(curl https://raw.githubusercontent.com/Viole403/Nimow-Clang/main/Clang-$Ver-link.txt 2>/dev/null) -O "Nimow-Clang.tar.gz" || Fail="Y"
     if [[ "${Fail}" == "N" ]];then
         mkdir $(pwd)/extracted-clang
         tar -xf ZyC-Clang.tar.gz -C "$(pwd)/extracted-clang"
