@@ -30,7 +30,7 @@ function getclang()
     [[ "${Fail}" == "N" ]] && wget -q $(curl https://raw.githubusercontent.com/Viole403/Nimow-Clang/main/Clang-$Ver-link.txt 2>/dev/null) -O "Nimow-Clang.tar.gz" || Fail="Y"
     if [[ "${Fail}" == "N" ]];then
         mkdir $(pwd)/extracted-clang
-        tar -xf ZyC-Clang.tar.gz -C "$(pwd)/extracted-clang"
+        tar -xf Nimow-Clang.tar.gz -C "$(pwd)/extracted-clang"
         
         CMDx=(--install /usr/bin/clang clang $(pwd)/extracted-clang/bin/clang 500)
         for ListCmds in $(ls $(pwd)/extracted-clang/bin)
